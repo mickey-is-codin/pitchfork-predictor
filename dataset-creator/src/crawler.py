@@ -67,7 +67,10 @@ def scrape_review_pages(pages_2_scrape):
                 for paragraph in review_p:
                     review_text += paragraph.text
 
-            album_lyrics = get_album_lyrics(artist, album)
+            if (artist and album):
+                album_lyrics = get_album_lyrics(artist, album)
+            else:
+                next
 
             if album_lyrics == None:
                 next
