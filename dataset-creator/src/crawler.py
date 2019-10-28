@@ -55,6 +55,7 @@ def scrape_review_pages(pages_2_scrape):
                     album        == None or
                     score        == None or
                     publish_date == None or
+                    genre        == None or
                     review_p     == None
                 ):
                 next
