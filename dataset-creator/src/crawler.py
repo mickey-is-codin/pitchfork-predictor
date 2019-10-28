@@ -50,40 +50,42 @@ def scrape_review_pages(pages_2_scrape):
             genre = review_soup.find("a", {"class": "genre-list__link"})
             review_p = review_soup.find("div", {"class": "contents dropcap"}).findAll("p")
 
-            if  (
-                    artist       == None or
-                    album        == None or
-                    score        == None or
-                    publish_date == None or
-                    genre        == None or
-                    review_p     == None
-                ):
-                next
+            if artist == None:
+                artist = "N/A"
             else:
                 artist = artist.text
-                album  = album.text
-                score  = score.text
+
+            if album == None:
+                album = "N/A"
+            else:
+                album = album.text
+
+            if score == None:
+                score = "N/A"
+            else:
+                score = score.text
+
+            if publish_date == None:
+                publish_date = "N/A"
+            else:
                 publish_date = publish_date[0:10]
+
+            if genre == None:
+                genre = "N/A"
+            else:
                 genre = genre.text
+
+            if review_p == None:
+                review_text = "N/A"
+            else:
                 review_text = ""
                 for paragraph in review_p:
                     review_text += paragraph.text
 
-            if (artist and album):
-                album_lyrics = get_album_lyrics(artist, album)
-            else:
-                next
+            album_lyrics = get_album_lyrics(artist, album)
 
             if album_lyrics == None:
                 next
-
-            # print(
-            #     f"Artist: {artist}, \n"
-            #     f"Album: {album}, \n"
-            #     f"Genre: {genre}, \n"
-            #     f"Score: {score}, \n"
-            #     f"Date: {publish_date}"
-            # )
 
             csv_info = [artist, album, genre, review_text, album_lyrics, publish_date, score]
 
