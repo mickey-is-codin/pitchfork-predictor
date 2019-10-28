@@ -16,7 +16,7 @@ def main():
 
 def make_csv_header():
 
-    csv_header_string = "date, album, artist, review_content, album_lyrics, score\n"
+    csv_header_string = "artist, album, genre, review, lyrics, date, score\n"
 
     with open(csv_fname, "w") as csv_file:
         csv_file.write(csv_header_string)
@@ -63,6 +63,7 @@ def scrape_review_pages(pages_2_scrape):
                 album  = album.text
                 score  = score.text
                 publish_date = publish_date[0:10]
+                genre = genre.text
                 review_text = ""
                 for paragraph in review_p:
                     review_text += paragraph.text
