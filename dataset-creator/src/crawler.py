@@ -1,6 +1,7 @@
 import csv
 import requests
 from bs4 import BeautifulSoup
+from bs4 import element
 from tqdm import tqdm
 
 csv_fname = "data/p4k_reviews.csv"
@@ -9,7 +10,10 @@ def main():
 
     print("\nCrawling Pitchfork for review scores\n\n")
 
-    pages_2_scrape = 50
+    max_pages = 1813
+    num_pages = 50
+
+    pages_2_scrape = [np.random.randint(0, max_pages) for x in num_pages]
 
     make_csv_header()
     scrape_review_pages(pages_2_scrape)
@@ -27,7 +31,7 @@ def scrape_review_pages(pages_2_scrape):
     review_page_base = "https://pitchfork.com/reviews/albums/"
 
     print("Scraping...")
-    for page in range(1, pages_2_scrape):
+    for page in pages_2_scrape:
 
         print(f"{review_page_base}?page={page}")
         page_url  = f"{review_page_base}?page={page}"
@@ -68,10 +72,8 @@ def scrape_review_pages(pages_2_scrape):
                 print("Error retriving info")
                 next
 
-            print(score)
-            if "span" in score:
+            if isinstance(score, element.Tag):
                 score = score.text
-            print(score)
 
             csv_info = [artist, album, genre, review_text, album_lyrics, publish_date, score]
 
