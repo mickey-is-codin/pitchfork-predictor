@@ -16,7 +16,7 @@ def main():
 
 def make_csv_header():
 
-    csv_header_string = "artist, album, genre, review, lyrics, date, score\n"
+    csv_header_string = "artist,album,genre,review,lyrics,date,score\n"
 
     with open(csv_fname, "w") as csv_file:
         csv_file.write(csv_header_string)
@@ -41,54 +41,37 @@ def scrape_review_pages(pages_2_scrape):
             review_html = requests.get(p4k_base + review_link).content
             review_soup = BeautifulSoup(review_html, "html.parser")
 
-            tombstone = review_soup.find("div", {"class": "single-album-tombstone"})
+            try:
+                tombstone = review_soup.find("div", {"class": "single-album-tombstone"})
 
-            artist = tombstone.find("li").find("a")
-            album  = tombstone.find("h1", {"class": "single-album-tombstone__review-title"})
-            score  = review_soup.find("span", {"class": "score"})
-            publish_date = review_soup.find("time", {"class": "pub-date"})["datetime"]
-            genre = review_soup.find("a", {"class": "genre-list__link"})
-            review_p = review_soup.find("div", {"class": "contents dropcap"}).findAll("p")
+                artist = tombstone.find("li").find("a")
+                album  = tombstone.find("h1", {"class": "single-album-tombstone__review-title"})
+                score  = review_soup.find("span", {"class": "score"})
+                publish_date = review_soup.find("time", {"class": "pub-date"})["datetime"]
+                genre = review_soup.find("a", {"class": "genre-list__link"})
+                review_p = review_soup.find("div", {"class": "contents dropcap"}).findAll("p")
 
-            if artist == None:
-                artist = "N/A"
-            else:
                 artist = artist.text
+                album  = album.text
+                score  = score.text
+                genre  = genre.text
 
-            if album == None:
-                album = "N/A"
-            else:
-                album = album.text
-
-            if score == None:
-                score = "N/A"
-            else:
-                score = score.text
-
-            if publish_date == None:
-                publish_date = "N/A"
-            else:
                 publish_date = publish_date[0:10]
 
-            if genre == None:
-                genre = "N/A"
-            else:
-                genre = genre.text
-
-            if review_p == None:
-                review_text = "N/A"
-            else:
                 review_text = ""
                 for paragraph in review_p:
                     review_text += paragraph.text
 
-            if (artist == "N/A" or album == "N/A"):
-                album_lyrics = "N/A"
-            else:
                 album_lyrics = get_album_lyrics(artist, album)
 
-            if album_lyrics == None:
+            except AttributeError as error:
+                print("Error retriving info")
                 next
+
+            print(score)
+            if "span" in score:
+                score = score.text
+            print(score)
 
             csv_info = [artist, album, genre, review_text, album_lyrics, publish_date, score]
 
