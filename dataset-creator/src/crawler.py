@@ -22,6 +22,15 @@ def main():
 
     pages_2_scrape = [np.random.randint(1, max_pages) for x in range(num_pages)]
 
+    review_df = scrape_review_pages(pages_2_scrape)
+
+    review_df.to_csv("data/p4k_reviews.csv")
+
+    prog_end = time.time()
+    print(f"Program executed in {prog_end - prog_start} seconds")
+
+def scrape_review_pages(pages_2_scrape):
+
     cols = [
         "artist",
         "album",
@@ -33,19 +42,12 @@ def main():
     ]
     review_df = pd.DataFrame(columns=cols)
 
-    scrape_review_pages(review_df, pages_2_scrape)
-
-    review_df.to_csv("data/p4k_reviews.csv")
-
-    prog_end = time.time()
-    print(f"Program executed in {prog_end - prog_start} seconds")
-
-def scrape_review_pages(review_df, pages_2_scrape):
-
     p4k_base = "https://pitchfork.com"
     review_page_base = "https://pitchfork.com/reviews/albums/"
 
+    num_reviews = 0
     print("Scraping...")
+
     for page in pages_2_scrape:
 
         print(f"{review_page_base}?page={page}")
@@ -63,21 +65,17 @@ def scrape_review_pages(review_df, pages_2_scrape):
                 print("Error getting review info")
                 continue
 
-            review_info["album_lyrics"] = get_album_lyrics(
+            review_info["lyrics"] = get_album_lyrics(
                 review_info["artist"],
                 review_info["album"]
             )
 
-            temp = pd.DataFrame({
-                "artist": review_info["artist"],
-                "album": review_info["album"],
-                "genre": review_info["genre"],
-                "review": review_info["review_text"],
-                "lyrics": review_info["album_lyrics"],
-                "date": review_info["publish_date"],
-                "score": review_info["score"]
-            }, index=[0])
-            review_df = pd.concat([review_df, temp])
+            review_df = review_df.append(review_info, ignore_index=True)
+
+            num_reviews += 1
+            print(f"Retrieved {num_reviews} reviews")
+
+    return review_df
 
 def get_review_links(page_soup):
 
@@ -94,34 +92,45 @@ def get_review_info(p4k_base, review_link):
     review_html = requests.get(p4k_base + review_link).text
     review_soup = BeautifulSoup(review_html, "html.parser")
 
-    try:
-        tombstone = review_soup.find("div", {"class": "single-album-tombstone"})
+    tombstone = review_soup.find("div", {"class": "single-album-tombstone"})
 
-        artist = tombstone.find("li").find("a")
-        album  = tombstone.find("h1", {"class": "single-album-tombstone__review-title"})
-        score  = review_soup.find("span", {"class": "score"})
-        publish_date = review_soup.find("time", {"class": "pub-date"})["datetime"]
-        genre = review_soup.find("a", {"class": "genre-list__link"})
-        review_p = review_soup.find("div", {"class": "contents dropcap"}).findAll("p")
+    artist = tombstone.find("li").find("a")
+    album  = tombstone.find("h1", {"class": "single-album-tombstone__review-title"})
+    score  = review_soup.find("span", {"class": "score"})
+    publish_date = review_soup.find("time", {"class": "pub-date"})["datetime"]
+    genre = review_soup.find("a", {"class": "genre-list__link"})
+    review_p = review_soup.find("div", {"class": "contents dropcap"}).findAll("p")
 
-        publish_date = publish_date[0:10]
+    publish_date = publish_date[0:10]
 
-        review_text = ""
-        for paragraph in review_p:
-            review_text += paragraph.text
-
-    except AttributeError as error:
-        return None
+    review_text = ""
+    for paragraph in review_p:
+        review_text += paragraph.text
 
     csv_info = {
         "artist": artist,
         "album": album,
         "genre": genre,
-        "review_text": review_text,
-        "album_lyrics": None,
-        "publish_date": publish_date,
+        "review": review_text,
+        "lyrics": None,
+        "date": publish_date,
         "score": score
     }
+
+    if csv_info["artist"] is None:
+        return None
+
+    if csv_info["album"] is None:
+        return None
+
+    if csv_info["genre"] is None:
+        return None
+
+    if csv_info["date"] is None:
+        return None
+
+    if csv_info["score"] is None:
+        return None
 
     for k, v in csv_info.items():
         if isinstance(v, element.Tag):
