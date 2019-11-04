@@ -10,6 +10,9 @@ from bs4 import BeautifulSoup
 from bs4 import element
 from tqdm import tqdm
 
+import resource
+resource.setrlimit(resource.RLIMIT_NOFILE, (110000, 110000))
+
 csv_fname = "data/p4k_reviews.csv"
 
 review_base = "https://pitchfork.com/reviews/albums/"
@@ -24,7 +27,7 @@ def main():
     start_time = time.time()
 
     max_pages = 1813
-    desired_pages = 50
+    desired_pages = 100
 
     print(f"scraping {desired_pages} pages of reviews")
 
